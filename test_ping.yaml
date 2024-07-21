@@ -1,0 +1,16 @@
+---
+- name: "[tutorial] semaphore test1"
+  hosts: all
+  gather_facts: true
+
+  vars:
+    - a: "b"
+
+  tasks:
+    - name: "Send example ping"
+      ping:
+      register: ping_result
+
+    - name: "Print ping result"
+      debug:
+        var: ping_result
