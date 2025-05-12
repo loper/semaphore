@@ -1,0 +1,31 @@
+---
+# playbook for Debian OS to cleanup old data
+# PKGS-7346 - Purge old/removed packages with aptitude purge or dpkg
+# --purge command. This will cleanup old configuration files,
+# cron jobs and startup scripts.
+
+- hosts: all
+  become: true
+  strategy: free
+
+  tasks:
+    - name: remove unused perl files
+      file:
+        path: /etc/profile.d/perlbin.sh
+        state: absent
+
+    - name: find all /tmp files older than 30 days
+      find:
+        paths: /tmp
+        age: 30d
+        recurse: yes
+      register: filesOlderThan
+
+    - debug: var=filesOlderThan.matched
+
+    - name: remove old files 
+      file:
+        path: "{{ item.path }}" 
+        state: absent
+      with_items: "{{ filesOlderThan.files }}"      
+          

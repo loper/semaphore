@@ -1,0 +1,29 @@
+---
+# playbook for Debian OS to cleanup old data
+# PKGS-7346 - Purge old/removed packages with aptitude purge or dpkg
+# --purge command. This will cleanup old configuration files,
+# cron jobs and startup scripts.
+
+- hosts: all
+  become: true
+  strategy: free
+
+  tasks:
+    - name: cleanup on Ubuntu
+      block:
+        - name: check outcomes
+          shell: "/usr/bin/dpkg -l | grep -E '^rc' | cut -d ' ' -f3"
+          register: out
+
+        # - debug: var=out.stdout_lines
+
+        # - name: run dpkg purge
+        #   shell: "sudo /usr/bin/dpkg -l | grep -E '^rc' | cut -d ' ' -f3 | xargs sudo dpkg --purge"
+        #   failed_when: false
+        #   when: false
+
+        - name: run dpkg purge
+          shell: "dpkg --purge {{ item }}"
+          loop: "{{ out.stdout_lines }}"
+
+      when: ansible_distribution == 'Ubuntu'
